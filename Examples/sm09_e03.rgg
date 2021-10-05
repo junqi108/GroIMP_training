@@ -1,0 +1,38 @@
+/*
+You learn at this example:
+
+- how to create a simple plant model (according to the architectural model Schoute)
+- how to specify branches (subgraphs) by [ ]
+
+*/
+
+// Example of a simple tree architecture (Schoute architecture)
+//----------- Extensions to the standard alphabet ----------
+
+// Shoot() is an extension of the turtle-command F() and stands for an annual shoot
+
+module Shoot(float len) extends F(len);
+
+// Bud is an extension of a sphere object and stands for a terminal bud
+// its strength controls the length of the produced shoot in the next timestep
+
+module Bud(float strength) extends Sphere(0.2)
+{{ setShader(RED); setTransform(0, 0, 0.3); }};
+
+//-----------------------------------------------------------
+
+protected void init()
+[
+   // initial state (one bud)
+   Axiom ==> Bud(5);
+]
+
+public void run()
+[
+   // a square bracket [] will indicate a branch (daughter relation)
+   // Rotation around upward axis (RU) and head axis (RH)
+   // Decrease of strength of the Bud (each step by 20%)
+	
+   Bud(x) ==> Shoot(x) [ RU(30) Bud(0.8*x) ] [ RU(-30) Bud(0.8*x) ];
+]
+	

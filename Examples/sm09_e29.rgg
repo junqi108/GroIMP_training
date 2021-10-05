@@ -1,0 +1,38 @@
+/*
+You learn at this example:
+
+to use a query with the relation -ancestor->.
+Keep care of the edge direction!
+
+*/
+
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// the nodes of types A and S will not be drawn:
+module A;
+module S;
+
+protected void init()
+[ 
+   Axiom ==>  A P(1) D(0.5) F(10) [ S RU(30) B ] B; 
+]
+
+public void runA()
+[
+// rule 1: applicable to all B which have an A node as predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < and <+ edges can be skipped.
+
+   B (* -ancestor-> A *) ==> F(10) [ S RU(30) B ] B;
+]
+
+public void runS()
+[
+// rule 2: applicable to all B which have an S node als predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < edges can be skipped.
+
+   B (* (<)* S *) ==> F(10) B;
+]

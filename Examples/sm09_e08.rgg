@@ -1,0 +1,22 @@
+/*
+You learn at this example:
+
+how to define your own modules in order to simplify the code
+
+*/
+
+// Koch curve with module definitions for rotation operators
+
+module Rplus  extends RU(60);	// rotation counterclockwise
+module Rminus extends RU(-60);	// rotation clockwise
+
+protected void init()
+[
+   Axiom ==> F(10) RU(120) F(10) RU(120) F(10);
+]
+
+public void derivation()
+[
+   // usage of the modules Rplus and Rminus for the rotation
+   F(x) ==> F(x/3) Rminus F(x/3) Rplus Rplus F(x/3) Rminus F(x/3);
+]

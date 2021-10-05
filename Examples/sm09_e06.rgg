@@ -1,0 +1,31 @@
+/*
+You learn at this example:
+
+- how to create a simple model of shoot growth with opposite
+  branching (in 3d)
+- how to use elements without drawing them (module B)
+
+*/
+
+// architectural tree model Schoute
+
+// I for Internode extends the turtle command F
+
+module I(float len) extends F(len);
+
+// B stands for a bud and is not a visible object (is not drawn)
+
+module B(float len);
+
+protected void init()
+[
+   Axiom ==> B(5);
+]
+
+public void run()
+[
+   // rotation around the up axis (RU) and around the
+   // head axis (RH)
+   B(x) ==> I(x) [ RU(30)  RH(90) B(0.7*x) ] 
+                 [ RU(-30) RH(90) B(0.7*x) ];
+]

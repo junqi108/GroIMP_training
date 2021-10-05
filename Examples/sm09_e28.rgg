@@ -1,0 +1,71 @@
+/*
+You learn at this example:
+
+the use of a query with the edge types > and < and the use
+of the transitive hull (iteration of edges).
+
+Do carefully observe the directions of the edges!
+
+The notation of a search pattern (query), analogous to context
+specifications, is as follows:
+
+A query is embraced by (*   *)
+The elements are given in their expected order, e.g.:
+(* A A B *) searches for a subgraph which consists of a sequence
+of nodes of the types A A B, connected by successor edges.
+
+Edge types can directly be specified:
+(* A > B *)   // = node A, followed by successor B
+(* A +> B *)  // = node A, followed by daughter (branch edge!) B
+(* A --> B *) // = node A, followed by B, connected with arbitrary
+                   edge
+
+The elements and the search direction can also be switched:
+
+(* B < A *)   // = starting in node B, there is a backward search 
+                   in the graph for a node A which has B as successor
+(* B <+ A *)  // = starting in node B, there is a backward search
+                   in the graph for a node A which has B as daughter
+(* B <-- A *) // = starting in node B, there is a backward search
+                   in the graph for a node A from which an arbitrary
+                   edge leads to node B.
+
+Furthermore, edges can be specified in search patterns as arbitrarily
+repeatable (0 times, once, two times, 3 times...).
+To achieve this, the edge type is put in parentheses and is marked
+with the operator for the "reflexive-transitive hull" (*):
+
+(* A (>)* B *) // = node A, followed by a sequence of edges of
+                    type ">" (successor), and at the end a B node.
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// the node types A and S are not drawn:
+module A;
+module S;
+
+
+protected void init()
+[ 
+   Axiom ==>  A P(1) D(0.5) F(10) [ S RU(30) B ] B; 
+]
+
+public void runA()
+[
+// rule 1: applicable to all B which have an A node as predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < edges can be skipped.
+
+   B (* (<)* A *) ==> F(10) [ S RU(30) B ] B;
+]
+
+public void runS()
+[
+// rule 2: applicable to all B which have an S node als predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < edges can be skipped.
+
+   B (* (<)* S *) ==> F(10) B;
+]

@@ -1,0 +1,22 @@
+/* sm09_e41.rgg
+You learn at this example:
+how a gradient-controlled transport process (e.g., for assimilates)
+can be modelled (here linked with diameter to make it visible) */
+
+module Internode(super.diameter) extends F(100, diameter);
+
+protected void init()
+   [
+   Axiom ==> P(14) Internode(1) P(2) Internode(1) 
+             P(4) Internode(1) P(15) Internode(60);
+   ]
+   
+public void transport()
+   [
+   i_top:Internode < < i_bottom:Internode ::>
+      {
+      float r = 0.1 * (i_bottom[diameter] - i_top[diameter]);
+      i_bottom[diameter] :-= r;
+      i_top[diameter]    :+= r;
+      }
+   ]

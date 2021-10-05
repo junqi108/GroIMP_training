@@ -1,0 +1,34 @@
+/* 
+
+You learn at this example: to switch between sequential
+and parallel derivation mode (SEQUENTIAL_MODE and PARALLEL_MODE).
+
+The default setting in GroIMP is PARALLEL_MODE.
+
+*/
+
+module B extends Sphere(0.4)
+{{ setShader(GREEN);}};
+
+module S(super.diameter) extends F(10, diameter, 2);
+
+float D0 = 1.0;
+
+protected void init()
+[ Axiom ==> S(D0) B; ]
+
+public void grow_par()
+{
+setDerivationMode(PARALLEL_MODE);
+   [
+   B ==> [ RU(35) S(D0) B ] [ RU(-35) S(D0) B ];
+   ]
+}
+
+public void grow_seq()
+{
+setDerivationMode(SEQUENTIAL_MODE);
+   [
+   B ==> [ RU(35) S(D0) B ] [ RU(-35) S(D0) B ];
+   ]
+}

@@ -1,0 +1,55 @@
+/* You learn at this example
+
+- to work with imperative XL commands in order to actualize
+  attributes of an object in actualization rules.
+  
+Watch the attributes of the objects in the attribute editor
+of GroIMP and the possibilities given there to change these
+attributes.
+It is also possible to have direct access to attributes of
+the superclass of the considered object there!
+
+*/
+
+
+// Definition of a CONSTANT: Constants are often denoted with
+// CAPITALS.
+
+const float MAXANGLE = 90.0;
+
+
+// Definition eines eigenen Rotationsbefehls als Erweiterung von RU:
+// Geerbt wird die Eigenschaft "angle" der Oberklasse RU, die mit 
+// super.angle als Parameter fuer den Konstruktor uebernommen wird.
+
+module Rotation(super.angle) extends RU(angle);
+
+protected void init()
+[
+   // Creation of branching under use of the user-defined
+   // rotatoin module
+   Axiom ==> L(10) F0
+                   [ MRel(0.7) Rotation(-30) F(6) ]
+                   [ MRel(0.5) Rotation(40)  F(6) ];
+]
+
+
+public void changeAngle()
+[
+   // use of an actualization rule ( ::> )
+   r:Rotation, (r[angle] < MAXANGLE && r[angle] > -MAXANGLE) ::> 
+      { // imperative code block
+      if (r[angle] < 0)
+         r[angle] -= 3;  /* short notation for: r[angle] = r[angle] - 3; */
+      else
+         r[angle] += 3;  /* analogously */
+      }
+]	
+
+// An actualization rule is used to change attributes (properties) 
+// of objects (i.e., of nodes) by rule application.
+// With this rule, no objects are replaced. The structure of the graph
+// is not changed.
+// Only the attributes of existing objects (nodes of the graph) can be
+// actualized.
+// Rules of this type are marked by the ::> arrow.

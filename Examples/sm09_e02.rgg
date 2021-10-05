@@ -1,0 +1,26 @@
+/*
+You learn at this example:
+
+- how to modify a simple model of a triangle to extend it to a Koch curve
+- your first "proper" rule application
+- the definition of a public method "application" (rule application)
+
+*/
+
+//---------------- Example Koch curve   -------------------------------------
+// each line will be replaced by 4 lines with length = (original length / 3)
+
+protected void init()
+[
+   Axiom ==> RU(50) F(10) RU(120) F(10) RU(120) F(10);
+]
+
+// pubic method for the interactive use in GroIMP (via button)
+public void application()
+// rules must be put in [] - brackets and must be finished with ;
+[
+   // each F() is replaced by 4 smaller F()
+   // the length of the F at the left-hand side of the rule
+   //   is taken over to the right-hand side
+   F(x) ==> F(x/3) RU(-60) F(x/3) RU(120) F(x/3) RU(-60) F(x/3);
+]

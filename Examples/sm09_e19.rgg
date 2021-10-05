@@ -1,0 +1,63 @@
+/* You learn at this example:
+
+how random variables can be used in different ways.
+
+*/
+
+module A(float x);
+
+protected void init()
+[ Axiom ==> A(1); ]
+
+// Example 0: growth is precisely specified without variation.
+public void run0()
+[
+   A(x) ==> F(x) [ RU(30) RH(90) A(0.8*x) ] [ RU(-30) RH(90) A(0.8*x) ];
+]
+
+// Example 1: For each RU command, an individual angle is taken
+// (random number between 0 and 60).
+
+public void run1()
+[
+   A(x) ==> F(x) [ RU(random(0, 60))  RH(90) A(0.8*x) ] 
+                 [ RU(-random(0, 60)) RH(90) A(0.8*x) ];
+]
+
+// Example 2: For each rule application (i.e., for each A 
+// (for each match of the left-hand side)) an angle is taken,
+// which is used for both RUs.
+public void run2()
+[
+   A(x) ==> F(x) {float w = random(0, 60);}
+	    [ RU(w) RH(90) A(0.8*x) ] [ RU(-w) RH(90) A(0.8*x) ];
+]
+
+// Example 3: For each call of "run" the angle is taken once
+// and will be used for each rule application.
+void run3()
+[
+   { float w = random(0, 60); }
+   A(x) ==> F(x) [ RU(w) RH(90) A(0.8*x) ] [ RU(-w) RH(90) A(0.8*x) ];
+]
+
+// Example 4: 2 method calls.
+// The method runW(w) is called by run4() and run5(), respectively, and gets
+// w as parameter. This parameter is then used in each rule application.
+// Please notice: runW does not appear as a button, because it has a
+public void runW(float w)
+[
+   A(x) ==> F(x) [ RU(w) RH(90) A(0.8*x) ] [ RU(-w) RH(90) A(0.8*x) ];
+]
+
+public void run4()
+{
+   runW(random(0, 60));
+}
+
+public void run5()
+{
+   for (apply(1)) runW(random(0, 60));
+   for (apply(1)) runW(random(0, 60));
+}
+

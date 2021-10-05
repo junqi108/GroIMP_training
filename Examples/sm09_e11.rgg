@@ -1,0 +1,32 @@
+/* You learn at this example:
+
+- how to use constants,
+- how to make the application of a rule depend on a condition.
+
+Change the values for the constants which are defined at the
+beginning and compare the resulting behaviour.
+
+*/
+
+module Shoot(float len) extends F(len);
+module Bud(float strength) extends Sphere(0.2)
+{{setShader(RED); setTransform(0,0,0.3);}};
+
+//----------------------------------------------------/
+
+const float APICAL_REDUCTION_FACTOR = 0.9;
+const float STRENGTH_LIMIT = 2;
+
+// Start block with the start word
+protected void init()
+[ Axiom ==> Bud(5); ]
+
+
+// public rule block (appears as button in the menue)
+public void grow()                                    
+[
+// condition is set (in parentheses (...) )
+   b:Bud(x), (b[strength] > STRENGTH_LIMIT) ==> Shoot(x) 
+       [ RU(50) Bud(0.7*x) ] [ RU(-50) Bud(0.7*x) ] 
+       Bud(APICAL_REDUCTION_FACTOR * x);
+]

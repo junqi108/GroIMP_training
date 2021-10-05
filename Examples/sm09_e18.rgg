@@ -1,0 +1,43 @@
+/* You learn at this example
+
+- how you can specify that an object from the left-hand side of 
+  a rule continues to exist after rule application by naming it.
+  
+Use the method enlargeSpheres to enlarge the sphere
+and watch the behaviour of the spheres when you apply the run()
+rule.
+
+*/
+
+// sphere 1:
+module RightSphere(float len, super.radius) extends Sphere(radius);
+// sphere 2:
+module LeftSphere(float len, super.radius) extends Sphere(radius);
+
+// both objects get the radius 0.1 when they are created
+
+protected void init()
+[
+Axiom ==> [ RU(30)  F(2) RightSphere(1, 0.1) ] 
+          [ RU(-30) F(2) LeftSphere(1, 0.1) ];
+]
+
+// Use this method to enlarge the spheres:
+public void enlargeSpheres()
+[ 
+   a:RightSphere ::> a[radius] += 0.2;
+   a:LeftSphere  ::> a[radius] += 0.2;
+]
+
+// run() lets the stem grow
+public void run()
+[
+   // rule 1: the object RightSphere is replaced by a new object
+   // of the same type
+   RightSphere(x, r)  ==> F(x) RightSphere(0.8*x, 0.1);
+   
+   // rule 2: the object LeftSphere is named and will be inserted
+   // by the right-hand side again into the graph. It maintains
+   // its attributes.
+   a:LeftSphere(x, r) ==> F(x) a {a[len] *= 0.8;};
+]

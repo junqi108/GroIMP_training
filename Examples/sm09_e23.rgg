@@ -1,0 +1,64 @@
+/* Model of plant dispersal with circular plants.
+
+You learn at this example:
+- How a simple, stochastic seed dispersal model can be implemented
+  in XL,
+- how a simplified model of stand structure with circular trees
+  looks like (still without taking competition into account),
+- how the time steps are explicitely counted,
+- how a dataset of population strengths is generated automatically
+  and plotted as a chart in an extra window at runtime.
+*/
+   
+module Plant(int t, super.radius) extends Cylinder(1, radius) 
+   {{setColor(0x00aa00);}}  
+   /* green plant, circular when seen from above */
+
+double pgrow = 0.9;    /* growth of radius per timestep */
+double seed_rad = 0.1; /* initial radius of a plant */
+int pmaxage = 20;      /* maximal age of a plant */
+int pgenage = 12;      /* minimal age required for reproduction */
+int pgenint = 4;       /* time interval for reproduction */
+double distmin = 15;   /* minimal distance for seed dispersal */
+double distmax = 70;   /* maximal distance for seed dispersal */
+double pminrad = 9;    /* minimal radius for reproduction */
+double pgenfac = 0.5;  /* ratio (number of seeds):radius */
+
+int n;                 /* counter for the time steps */
+
+const DatasetRef population_size = new DatasetRef("population size");
+                       /* dataset (table) for chart */
+
+protected void init()
+{
+   population_size.clear().setColumnKey(0,"plants"); 
+                       /* column of table is prepared */
+   chart(population_size, XY_PLOT);  /* Chart is initialized */
+   n = 0;
+   [
+   Axiom ==> Plant(0, seed_rad);
+   ]
+}
+
+public void make()
+{
+   [
+   Plant(t, r), (t > pmaxage) ==> ;  /* plant dies from high age */
+
+   Plant(t, r), (t >= pgenage && ((t - pgenage) % pgenint == 0) 
+                 && r >= pminrad)
+      ==> for ((1 : (int) (pgenfac*r)))
+             ( [ RH(random(0, 360)) RU(90) M(random(distmin, distmax))
+                 RU(-90) Plant(0, seed_rad) ] )  /* seed dispersal */
+          Plant(t+1, r);
+   Plant(t, r) ==> Plant(t+1, r+pgrow);  /* vegetative growth */
+   ]
+   
+population_size.addRow().set(0, count( (* Plant *) ));
+   /* all plants are counted, noticed in the table and plotted */
+n++;
+println(n); /* output of the actual time step as a number */
+}
+   
+   
+       

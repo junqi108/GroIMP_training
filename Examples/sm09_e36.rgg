@@ -1,0 +1,32 @@
+/*
+You learn at this example:
+
+- the use of a query on the left-hand side of a rule in connection
+  with an if/else control structure.
+
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// module A will not be drawn.
+module A;
+
+protected void init()
+[
+Axiom ==> F(10, 1, 14) [ RU(30) B ] [ RU(-30) A B ];
+]
+
+public void run()
+[
+// The right-hand side of the rule is controlled by an if-else structure.
+// Its condition uses a query.
+// The aggregation operator empty() checks the result set of the query
+// (is the number of graphs contained in the result == 0 ?)
+// Only the branch marked with A continues to branch.
+
+b:B ==> if ((empty((* b -ancestor-> A *))))
+	   ( F(10, 1, 4)  B )
+	else
+	   ( F(10, 1, 14) [ RU(30) B ] B );
+]

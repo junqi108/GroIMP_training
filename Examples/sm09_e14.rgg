@@ -1,0 +1,30 @@
+/*
+You learn at this example:
+
+- the use of a context on the left-hand side of a rule
+  (in this case, a left context).
+  
+Notice the context search pattern!
+
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// The modules A and S extend F, i.e., they will be drawn.
+module A extends F(10, 0.1, 14);
+module S extends F(5, 0.1, 4);
+
+protected void init()
+[
+   Axiom ==>  A [ RU(30) S B ] A B;
+]
+
+public void runApikal()
+[
+   // context: all B with a predecessor of type S
+   (* S *) B ==> S B;
+
+   // context: all B with a predecessor of type A
+   (* A *) B ==> [ RU(30) S B ] A B;
+]

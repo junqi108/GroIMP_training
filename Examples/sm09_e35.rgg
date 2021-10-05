@@ -1,0 +1,30 @@
+/*
+You learn at this example:
+
+the use of a query for arbitrary nodes (type Node)
+with subsequent checking of the found type with
+"instanceof".
+
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+module A;
+
+
+protected void init()
+[ Axiom ==> F(10, 1, 14) [ RU(30) B ] A B; ]
+
+public void run()
+[
+// The node preceding a node of type B is checked.
+// If this node is not of type A, the first rule will be applied.
+// The check is done with a condition which the result of the query
+// must fulfill.
+
+(* x:Node *) B, (!(x instanceof A)) ==> F(5, 1, 4) B;
+	
+(* A *) B ==> F(10, 1, 14) [ RU(30) B ] A B;
+	
+]

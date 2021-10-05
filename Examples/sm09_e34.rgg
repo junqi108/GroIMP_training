@@ -1,0 +1,52 @@
+/* You learn at this example:
+
+- how the thickness growth according to the "pipe model"
+  can be modelled more elegantly with the relation
+  "minDescendants".
+  
+-minDescendants-> yields in the graph the next successor
+having the subsequently specified node type and skips
+nodes of other types. Successor and branch edges are
+taken into account.
+
+Growth in length and growth in thickness are again separated.
+It is no longer necessary to use the sequential mode of
+rule application, thanks to the -minDescendants-> relation.
+
+*/
+
+module B extends Sphere(0.4)
+{{ setShader(GREEN);}};
+
+module C extends Sphere(0.5)
+{{ setShader(RED);}};
+
+module S(super.diameter) extends F(10, diameter, 2);
+
+module T(super.diameter) extends F(10, diameter, 14);
+  // marked shoot: supposed to propagate its diameter downwards
+
+float D0 = 0.001;  // initial shoot diameter (nearly 0)
+float D1 = 1.0;    // final diameter of distal shoots
+
+protected void init()
+[ Axiom ==> S(D0) B; ]
+
+public void grow_l()         // length growth of the structure
+[
+B ==> [ RU(35) S(D0) B ] [ RU(-35) S(D0) B ];
+]
+
+public void grow_d()         
+[
+S(d) B ==> T(D1) C;   // marking of distal shoots
+
+s:S(d), (empty((* S(y) -ancestor-> s *))) ==> t:T(0),
+   {
+   float dd = 0.0;
+   for ((* s -minDescendants-> T(y) *)) // searches marked 
+                                        // successors
+      dd = Math.sqrt(dd*dd + y*y);  // pipe model!
+   t[diameter] = Math.max(t[diameter], dd); // no shrinking
+   };
+]

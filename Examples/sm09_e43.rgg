@@ -1,0 +1,28 @@
+/* You learn at this example:
+
+Two possible uses of instantiation rules.
+- For the more exact design of an object immediately preceding
+  its graphical representation (similar to interpretive rules),
+- for "copying" and controlled placement of the copies of
+  complex objects with particular, defined replicator objects.
+
+*/
+
+const int multiply = EDGE_0;
+
+module Tree ==> F(20, 1) 
+   [ M(-8) RU(45) F(6, 0.8) Sphere(1) ]
+   [ M(-5) RU(-45) F(4, 0.6) Sphere(1) ] Sphere(2);
+
+module Replicator ==> [ getFirst(multiply) ] Translate(10, 0, 0)
+                      [ getFirst(multiply) ];
+
+public void run1()
+[
+Axiom ==> F(2, 6) P(10) Tree;
+]
+
+public void run2() 
+[
+Axiom ==> F(2, 6) P(10) Replicator -multiply-> Tree;
+]

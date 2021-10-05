@@ -1,0 +1,27 @@
+/*
+Variant of the preceding example.
+Here, a right context is used.
+The modules A and S are not drawn, but replaced by visible
+objects in the next step.
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// The modules A and S are not drawn.
+module A;
+module S;
+
+protected void init()
+[ Axiom ==>  F(10, 0.1, 14) [ RU(30) S B ] A B; ]
+
+// Here, the modules A and S will be replaced by F S and
+// F A, respectively. The "bud" B remains unchanged.
+public void runApical()
+[
+   // context condition: all S followed by a B
+   S (* B *) ==> F(5, 0.1, 4) S;
+
+   // context condition: all A followed by a B
+   A (* B *) ==> F(10, 0.1, 14) [ RU(30) S B ] A;
+]

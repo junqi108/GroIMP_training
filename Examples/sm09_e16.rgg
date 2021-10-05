@@ -1,0 +1,43 @@
+/*
+You learn:
+
+how to modify properties of objects by actualization rules.
+
+Objects and their connections control topology,
+properties of objects (attributes) control geometry and colour.
+
+*/
+
+// a simple internode with a fixed, very small initial size
+module Internode(int age, int f) extends F(0.02, 0.0005)
+   {{if (f == 0) setShader(GREEN);
+     else setShader(BLUE);}};
+
+// a simple meristem
+module Meristem(int age, int f) extends Sphere(0.002)
+   {{setShader(RED);}};
+
+
+// The initial structure consists of the meristem
+protected void init()
+[ Axiom ==> Meristem(30, 0); ]
+
+public void run()
+[
+   // Two alternative rules for the meristem:
+
+   // first rule for a new meristem: Creation of the internode
+   m:Meristem, (m[age] == 30) ==> 
+     Internode(0, m[f]) RH(140) RU(random(-10, 10)) Meristem(0, 1-m[f]);
+   // The meristem ages by 1 day
+   m:Meristem, (m[age] < 30) ::> m[age]++;
+	
+   // rule for the increase of the internodium
+   i:Internode ::> 
+      {
+      if(i[age] < 30) 
+         i[length] += 0.005;  // length growth: the first 30 days
+      i[diameter] += 0.0001;  // Thickness growth always
+      i[age]++;               // incrementation of the age
+      }	
+]

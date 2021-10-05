@@ -1,0 +1,31 @@
+/* You learn at this example:
+
+how to connect two conditions logically.
+
+Change the values for the declared constants and compare
+the behaviour with both preceding examples.
+
+*/
+
+module Shoot(float len) extends F(len);
+module Bud(int order, float strength) extends Sphere(0.2)
+{{setShader(RED); setTransform(0,0,0.3);}};
+
+const float APICAL_REDUCTION_FACTOR = 0.96;
+const float MAX_ORDER_ALLOWED = 3;
+const float STRENGTH_LIMIT = 1.5;
+//----------------------------------------------------/
+
+// Start block with the start word
+protected void init()
+[ Axiom ==> Bud(0, 5); ]
+
+
+// public rule block (appears in the menue)
+public void grow()
+[
+   // two conditions are specified
+   b:Bud(o, x), (b[order] <= MAX_ORDER_ALLOWED && b[strength] > STRENGTH_LIMIT) 
+      ==> Shoot(x) [ RU(50) Bud(o+1, 0.7*x) ] 
+          [ RU(-50) Bud(o+1, 0.7*x) ] Bud(o, APICAL_REDUCTION_FACTOR * x);
+]

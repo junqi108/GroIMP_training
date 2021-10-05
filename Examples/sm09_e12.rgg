@@ -1,0 +1,31 @@
+/* You learn at this example:
+
+how to keep the branching order as a parameter and how to get 
+access to its value in a condition.
+
+(Compare the resulting growth behaviour with the preceding 
+example.)
+
+*/
+
+module Shoot(float len) extends F(len);
+module Bud(int order, float strength) extends Sphere(0.2)  // order as param.
+   {{setShader(RED); setTransform(0,0,0.3);}};
+
+const float APICAL_REDUCTION_FACTOR = 0.95;
+const float MAX_ORDER_ALLOWED = 2;
+
+//----------------------------------------------------/
+
+// Start block with the start word
+protected void init()
+[ Axiom ==> Bud(0, 5); ]
+
+
+// public rule block
+public void grow()
+[
+   b:Bud(o, x), (b[order] <= MAX_ORDER_ALLOWED) ==> Shoot(x) 
+      [ RU(50) Bud(o+1, 0.7*x) ] [ RU(-50) Bud(o+1, 0.7*x) ] 
+      Bud(o, APICAL_REDUCTION_FACTOR * x);
+]

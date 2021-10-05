@@ -1,0 +1,41 @@
+/*
+You learn at this example:
+
+how to create a simple model of shoot growth with alternating
+positioning of lateral branches.
+
+*/
+
+// definition of a terminal bud as extension of a sphere
+module B(float len, float w) extends Sphere(0.1)
+{{setShader(GREEN);}}
+
+// definition of a lateral bud as extension of a sphere
+module LB(float len) extends Sphere(0.1)
+{{setShader(GREEN);}}
+
+// definition of an internode as extension of the module F
+module I(float len) extends F(len);
+
+// start method with the axiom (generates a bud)
+protected void init()
+[
+   Axiom ==> B(1, 30);
+]
+
+// Block which can be executed interactively.
+// It appears in the menue.
+// The block contains two rules, one for each type of bud.
+
+public void run()
+[
+   // multiplication of the angle by -1
+   // is responsible for the alternating positions
+	
+   B(x, w) ==> I(x) [ RU(w) RH(90) LB(0.3*x) ] B(0.95*x, -w);
+	
+   LB(x) ==> I(x) LB(x);
+
+]
+
+

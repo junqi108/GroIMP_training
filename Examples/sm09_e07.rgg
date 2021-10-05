@@ -1,0 +1,34 @@
+/*
+You learn at this example:
+
+- how to insert simple imperative XL code directly into a rule,
+- how to assign objects (nodes of the graph) during their generation
+  on the right-hand side of a rule by names and how to use them directly
+  in XL code,
+- that by replacement, all attributes get lost when the objects are
+  replaced,
+- that it is possible to transfer attributes from the left-hand side
+  of a rule to its right-hand side, if you take care of this
+  (e.g., the length of F is saved by the variable x)
+
+*/
+
+
+// the Koch curve again
+protected void init()
+// rule blocks must be enclosed in [] brackets
+[
+   // a coloured triangle as the start word
+   // In braces { }, imperative XL code is specified: Here, the
+   // specification of the colour.
+   // The Objects are directly named when they are generated 
+   // (names f1, f2).
+   Axiom ==> f1:F(10) { f1.setColor(0x0000ff); } RU(120) 
+             f2:F(10) { f2.setColor(0xff0000); } RU(120) F(10);
+]
+
+public void derivation()
+[
+   // replacement rule
+   F(x) ==> F(x/3) RU(-60) F(x/3) RU(120) F(x/3) RU(-60) F(x/3);
+]

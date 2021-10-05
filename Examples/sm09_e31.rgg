@@ -1,0 +1,33 @@
+/*
+You learn at this example:
+
+the use of the aggregation operator empty()
+to check the result set of a query.
+
+*/
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// module A is not drawn
+module A;
+
+protected void init()
+[
+   Axiom ==> P(1) D(0.5) F(10) [ RU(30) B ] A B;
+]
+
+public void runB()
+[
+
+// The query is used in a condition.
+// The set of results of the query (set of graphs) is checked
+// by the aggregating function empty() for emptyness.
+
+   b:B, (empty((* b -ancestor-> A *))) ==> F(5) B;
+]
+
+public void runAB()
+[
+   A B ==> F(10) [ RU(30) B ] A B;		
+]

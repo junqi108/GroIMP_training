@@ -1,0 +1,59 @@
+/* You learn at this example:
+
+3 ways how to access the properties (attributes) of an object.
+
+1. objectDenominator.attribute (e.g., k.length)
+   (same syntax as in the programming language Java!)
+   - this allows to change the attribute "length", but does not trigger
+     a redrawing of the scene.
+2. objectDenominator[attribute] (e.g., k[length])
+   - this changes the attribute length and triggers the new drawing
+     of the scene; the 3D view is actualized.
+3. For certain attributes, specific setAttribute() and getAttribute()
+   methods are implemented.
+   
+Attributes which are inherited from superclasses (mother class,
+grandmother class etc.) can only be accessed using way 2.
+
+*/
+
+module Bud() extends Sphere(0.1) {{ setShader(RED); }};
+
+module Internode() extends F(1) {{ setShader(GREEN); setScale(1); }};
+
+protected void init()
+[ Axiom ==> Internode() Bud(); ]
+
+
+// rule block 1: rule application - scene is drawn again.
+
+public void run1()
+[
+   i:Internode ::> i[length] = i[length] + 0.1;
+]
+
+// rule block 2: rule application - scene is not drawn again.
+// New drawing can be enforced manually by "View -> Display ->
+// OpenGL".
+
+public void run2()
+[
+   i:Internode ::> i.length = i.length + 0.1;
+]
+
+// method 3: rule application - scene is drawn again.
+// Uses an attribute of a superclass of higher order
+// (grand-grandmother).
+
+public void run3()
+[
+   i:Internode ::> i[scale] += 0.1;
+]
+
+// method 4: rule application - scene is not drawn again.
+// Uses a special set() method.
+
+public void run4()
+[
+   i:Internode ::> i.setScale(1);
+]

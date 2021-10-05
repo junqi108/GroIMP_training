@@ -1,0 +1,196 @@
+/* preliminary version of the poplar model, based on sm09_e40.gsz.
+
+Changes:
+
+- The determination of the maturity class (mc) is outsourced into
+  a separate function getMaturityClass
+  
+- the maturity classes are applied to all objects
+
+- each object gets a pool of assimilates (internal variable pspool)
+  which can be supplied from photosynthesis (in leaves) or by transport
+  from a neighbour object
+  
+- a further rgg file with functions for photosynthesis is linked
+
+- the rule blocks photosynthesis, transport and grow are inserted.
+  grow is responsible for that what up to now was done by "run".
+  run is now the superior control function for the simulation.
+
+*/
+
+// import of the second, new rgg file: 
+import static photosynthesis.*;
+
+// a simple internode with a fixed, very small start size:
+module Internode(int age, int lnfb) extends F(0.01, 0.0005)
+   {
+   float pspool = 0.0;
+   {setShader(GREEN);}
+   };
+
+// a meristem as seed for growth:
+module Meristem(int age, int lnfb) extends Sphere(0.0005)
+{{ setShader(RED); }};
+
+// the petiole:
+module Petiole(int age, int lnfb) extends F(0.001, 0.0001)
+   {
+   float pspool = 0.0;
+   {setShader(GREEN);}
+   };
+
+// the blade of the leaf:
+module Blade(int age, int lnfb) extends Parallelogram(1.0, 1.0/1.3)
+   { 
+   float pspool = 0.0;	
+   };
+
+/*************** constants and global variables *************/
+
+const Shader leafmat = shader("Leaf1");
+
+public int time = 0; // time unit = 1 hour
+public const float PART_OF_A_DAY = 1/24;
+public int nbleaves = 0;
+const int PLASTOCHRON = 48; // number of time units between the emergence
+                           // of two leaves
+
+const int MAX_GROWTHTIME_INTERNODE = 600;
+const int MAX_GROWTHTIME_PETIOLE = 30;
+const int MAX_GROWTHTIME_LEAF = 96;
+
+const float GROWTH_RATE_INTERNODE_LENGTH = 0.001;
+const float GROWTH_RATE_INTERNODE_DIAMETER = 0.000004;
+const float GROWTH_RATE_PETIOLE_LENGTH = 0.00117;
+const float GROWTH_RATE_PETIOLE_DIAMETER = 0.000031;
+const float GROWTH_RATE_LEAF_SCALE = 0.0016;
+
+const int NEWLEAF = 0;
+const int MATURELEAF = 1;
+const int OVERMATURELEAF = 2;
+
+const float[] MAX_GWROWTH_INTERNODE = {0.01, 0.03, 0.02};
+const float[] MAX_GWROWTH_PETIOLE = {0.01, 0.07, 0.02};
+const float[] MAX_GWROWTH_LEAF_SCALE = {0.04, 0.09, 0.03};
+
+const float LEAFFORMFACTOR = 0.6;
+
+/*********** rule blocks ******************************************/
+
+protected void init()
+   {
+   time = 0;
+   nbleaves = 0;
+      [
+      Axiom ==> Meristem(0, 0);
+      ]
+   }
+
+
+public void run()
+   {
+   for (apply(1)) photosynthesis(PART_OF_A_DAY);
+   for (apply(10)) transport();  // each time 10 transport steps
+   for (apply(1)) grow();
+   }
+
+// method for the calculation of photosynthesis in the leaves
+public void photosynthesis(float part_of_a_day)
+   [	
+   s:Blade ::> 
+      {
+      int maturityclass = getMaturityClass(nbleaves, s[lnfb]);
+      float leafarea = s[scale] * s[scale] / 1.3 * LEAFFORMFACTOR;
+      s[pspool] += calculatePS(leafarea, maturityclass+1);
+      }
+   ]
+
+public void grow()
+   {
+   time ++;
+   println("Hour:" + time);
+
+   /* rule block for the meristem: */
+      [   
+      // first rule: the meristem ages
+      m:Meristem ::> m[age]++;
+      
+      // for a meristem: formation of the internode
+      m:Meristem, (m[age] == PLASTOCHRON || m[lnfb] == 0) ==> 
+         Internode(0, m[lnfb]+1) 
+         [ RL(45) Petiole(0, m[lnfb]+1) RH(5) RL(30) 
+            [ Blade(0, m[lnfb]+1).(setShader(leafmat), setScale(0.001))
+               { nbleaves++; }
+            ]
+         ]
+         RH(140) RU(random(-5,5)) Meristem(0, m[lnfb]+1);
+      ]
+
+   /* rule block for extension growth of the internodes: */
+      [
+      i:Internode ::> 
+         {
+         int maturityclass = getMaturityClass(nbleaves, i[lnfb]);
+         if( i[age] <  MAX_GROWTHTIME_INTERNODE && 
+             i[length] <= MAX_GWROWTH_INTERNODE[maturityclass]) 
+            {   // length growth during the first 30 days
+            i[length] += GROWTH_RATE_INTERNODE_LENGTH; 
+            } 
+         i[diameter] += GROWTH_RATE_INTERNODE_DIAMETER; // diam. growth always
+         i[age]++; // age incrementation
+         }
+      ]
+   /* rule block for extension of the petioles: */
+      [
+      p:Petiole, (p[age] < MAX_GROWTHTIME_PETIOLE) ::> 
+         {
+         int maturityclass = getMaturityClass(nbleaves, p[lnfb]);
+         p[length] += GROWTH_RATE_PETIOLE_LENGTH;     // length growth
+         p[diameter] += GROWTH_RATE_PETIOLE_DIAMETER; // diameter growth
+         p[age]++;   // age incrementation
+         }
+      ]
+   /* rule block for leaf growth: */
+      [
+      s:Blade, (s[age] <  MAX_GROWTHTIME_LEAF) ::> 
+         {
+         int maturityclass = getMaturityClass(nbleaves, s[lnfb]);
+         s.setScale(s[scale] + GROWTH_RATE_LEAF_SCALE);
+         s[age]++;
+         }
+      ]
+   }
+
+public void transport()
+   [
+   b:Blade -ancestor-> i:Internode ::> 
+      {
+      int lpi = nbleaves - b[lnfb] - 1; 
+      if (lpi >= 4)
+         {
+         float r = 0.01 * (b[pspool] - i[pspool]);
+         println("basipetal photosynthate transport: " + r);
+         b[pspool] :-= r;
+         i[pspool] :+= r; 
+         }
+      }
+   ]
+
+/********************* functions for calculations ************************/
+
+private int getMaturityClass(int maxleaf, int lnfb)
+   {
+   int maturityclass = 0;
+   int lpi = maxleaf - lnfb - 1; 
+   if (lpi < 5) 
+      maturityclass = NEWLEAF;
+   else 
+      { 
+      if (lnfb > 5)
+         maturityclass = MATURELEAF;
+      else 
+         maturityclass = OVERMATURELEAF;
+      }
+   return maturityclass;
+   }

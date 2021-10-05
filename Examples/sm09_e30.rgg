@@ -1,0 +1,41 @@
+/*
+You learn at this example:
+
+the reversal of edge direction in a query.
+
+*/
+
+
+module B extends Sphere(0.1)
+{{setShader(GREEN);}};
+
+// nodes of types A and S are not drawn:
+module A;
+module S;
+
+protected void init()
+[ 
+   Axiom ==>  A P(1) D(0.5) F(10) [ S RU(30) B ] B; 
+]
+
+public void runA()
+[
+// rule 1: applicable to all B which have an A node as predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < and <+ edges can be skipped.
+// In contrast to the preceding example, the query is here
+// read bottom-up.
+
+   (* A <-ancestor- *) B ==> F(10) [ S RU(30) B ] B;
+]
+
+public void runS()
+[
+// rule 2: applicable to all B which have an S node als predecessor
+// (possibly with skipping intermediate nodes).
+// Arbitrarily many < edges can be skipped.
+// In contrast to the preceding example, the query is here
+// read bottom-up.
+
+   (* S (>)* *) B ==> F(10) B;
+]

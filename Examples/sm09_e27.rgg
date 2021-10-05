@@ -1,0 +1,22 @@
+/* You learn at this example:
+
+- the distinction between L-system rules (==>) and
+  SPO rules (==>>)
+- the special character ^ for the root node of the actual graph.
+
+*/
+
+module A extends Sphere(3);
+
+protected void init()
+[  Axiom ==> F(20, 4) A; ]
+
+public void runL()
+[
+   A ==> RU(20) F(20, 4) A;
+]
+
+public void runSPO()
+[
+   A ==>> ^ RU(20) F(20, 4, 5) A;
+]

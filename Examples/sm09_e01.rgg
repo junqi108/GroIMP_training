@@ -1,0 +1,13 @@
+/*
+You learn at this example:
+
+- how to create a simple model of a triangle as a static structure
+- how to insert comments into the code
+
+*/
+
+protected void init()
+[
+   //    The start word is transformed into a triangle
+   Axiom ==> RU(30) F(10) RU(120) F(10) RU(120) F(10);
+]

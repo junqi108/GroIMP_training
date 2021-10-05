@@ -1,0 +1,30 @@
+/* You learn at this example
+
+- the use of a "for" loop on the right-hand side of a rule
+- the automatic generation of several lateral branches
+
+*/
+
+protected void init()
+[ Axiom ==> F(10); ]
+
+public void lateralBranch()
+[
+// for each F, its length x is taken as the turtle's
+// step length ( L(x) )
+   f:F(x) ==> f L(x)
+
+// Counting loop (for) with 5 runs.
+// Each run generates a daughter branch.
+// The variable i is an integer which is incremented by 1
+// in each run (1, 2, ..., 5).
+		
+for (int i=1; i<=5; i++) 
+   (
+// MRel(0.1*i+0.2) specifies the position at the mother shoot,
+// starting at 20%, + 10% per run.
+   [ MRel(0.1*i+0.2) RU((-1**i)*30) F(x*0.2) ]
+// RU((-1**i)*30) lets the branching angle flip between
+// -30 and 30 degrees.
+   );
+]

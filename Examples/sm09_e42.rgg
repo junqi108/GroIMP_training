@@ -1,0 +1,32 @@
+/* sm09_e42.
+You learn at this example:
+- query of a shadow-relevant cone with the function "cone",
+- deletion of parts of the structure with an SPO rule.
+*/
+
+module Segment(int t, int ord) extends F0;
+module TBud(int t) extends F(1, 1, 1);
+module LBud extends F(0.5, 0.5, 1);
+
+Vector3d z = new Vector3d(0, 0, 1);
+
+protected void init()
+   [
+   Axiom ==> P(2) D(5) V(-0.15) [ TBud(-4) ] RU(90) M(600) RU(-90)
+                                [ TBud(0) ] RU(-90) M(1200) RU(90)
+                                [ TBud(-8) ];
+   ]
+   
+public void run()
+   [
+   TBud(t), (t < 0) ==> TBud(t+1);
+   x:TBud(t), (t >= 0 && empty( (* s:Segment, (s in cone(x, z, 45)) *) ) ) ==>
+      L(random(80, 120)) Segment(0, 0)
+      [ MRel(random(0.5, 0.9)) RU(60) LBud ]
+      [ MRel(random(0.5, 0.9)) RU(-60) LBud ] TBud(t+1);
+   y:LBud, 
+      (empty( (* s:Segment, (s in cone(y, z, 45)) *) ) ) ==>
+      L(random(60, 90)) Segment(0, 1) RV0 LBud;
+   Segment(t, o), (t < 8) ==> Segment(t+1, o);
+   Segment(t, o), (t >= 8 && o == 1) ==>> ;
+   ]

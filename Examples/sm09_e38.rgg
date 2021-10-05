@@ -1,0 +1,89 @@
+/*
+
+This example extends sm09_e37.rgg towards a model of a young poplar
+tree.
+
+You will learn:
+
+- how to show a step counter on the console during the simulation,
+- how to control the growth of a module alternatively via setScale
+  (at the example of the leaf blade).
+  
+For the leaf blade, there will be no separate methods for setting
+the x and z extension; instead, setScale is used.
+Furthermore, the model was extended by a rule for the growth
+of the petiole.
+
+*/
+
+// a simple internode with a fixed, very small start size:
+module Internode(int age) extends F(0.01, 0.0005)
+{{setShader(GREEN);}};
+
+// a meristem as seed for growth:
+module Meristem(int age) extends Sphere(0.0005)
+{{setShader(RED);}};
+
+// the petiole:
+module Petiole(int age) extends F(0.005, 0.001)
+{{setShader(GREEN);}};
+
+// the leaf:
+module Blade(int age) extends Parallelogram(1.0, 1.0/1.3);
+
+const Shader leafmat = shader("Leaf1");
+
+public int day;
+
+
+protected void init()
+{
+   day = 0;
+   [ Axiom ==> Meristem(30); ]
+}
+
+public void run()
+{
+   day++;
+   println("Day: " + day);
+   [
+   // first rule for a new meristem: formation of the internode
+   m:Meristem , (m[age] == 30) ==> Internode(0) [ RL(45) Petiole(0) 
+      RH(5) RL(30) [ Blade(0).(setShader(leafmat), setScale(0.001)) ] ]
+      RH(140) RU(random(-5, 5)) Meristem(0);
+
+   // The meristem ages:
+   m:Meristem, (m[age] < 30) ::> m[age]++;	
+   ]
+
+   [
+   // block for the extension of the internode:
+   i:Internode ::> 
+      {
+      if(i[age] < 30) { i[length] += 0.001; }  
+         // length growth during the first 30 days
+      i[diameter] += 0.000004; // diameter growth always
+      i[age]++; // age increment
+      }
+   ]
+
+   [
+   // block for the extension of the petiole during the first 60 days:
+   p:Petiole, (p[age] < 60) ::> 
+      {
+      p[length] += 0.00117;    // length growth
+      p[diameter] += 0.000031; // diameter growth
+      p[age]++;              // age increment
+      }
+   ]
+
+   [ 
+   // block for the growth of the leaf blade:
+   s:Blade, (s[age] < 60) ::> 
+      {
+      s.setScale(s[scale] + 0.0016);
+      s[age]++;
+      }	
+   ]
+}
+

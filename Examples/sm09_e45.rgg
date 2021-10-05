@@ -1,0 +1,255 @@
+/* last preliminary version of the poplar model; based on sm09_e44.gsz.
+
+New features:
+
+Completion of photosynthesis calculation
+Output of protocol data into a file
+Growth sections (TOPSECTION, MIDDLESECTION, BASESECTION) replace the
+   leaf maturity classes
+Calculation functions (outsourced) for LPI and growth sections
+Growth restriction for leaves introduced
+
+*/
+
+// import for output to file:
+import java.io.*;
+// import of the second rgg file:
+import static photosynthesis.*;
+
+/*********************** module definitions ******************/
+
+// The whole tree:
+module Tree(int age, float pspool) extends Sphere(0.01);
+
+// a simple internode with a fixed, very small start size:
+module Internode(int age, int lnfb) extends F(0.01, 0.0005)
+   {
+   float pspool = 0.0;
+   {setShader(GREEN);}
+   };
+
+// a meristem as initial seed for growth:
+module Meristem(int age, int lnfb) extends Sphere(0.0005)
+   {{ setShader(RED); }};
+
+// the petiole:
+module Petiole(int age, int lnfb) extends F(0.001, 0.0001)
+   {
+   float pspool = 0;
+   {setShader(GREEN);}
+   };
+
+// the leaf blade:
+module Blade(int age, int lnfb) extends Parallelogram(1.0, 1.0/1.3)
+   { 
+   float pspool = 0;		
+   };
+
+/*************** constants and global variables *************/
+
+const PrintWriter tmpfile;	      // output buffer -> output to file
+private Boolean tmpFileClosed = true; // control variable: datafile open?
+
+const Shader leafmat = shader("Leaf1"); // texture for the leaves
+
+public int time = 0;            // time unit = one hour
+const float PART_OF_A_DAY = 24; // time unit for transport
+                                // (relative to base time unit)
+
+public int nbleaves = 0; // total number of leaves of the tree
+const int PLASTOCHRON = 48; // number of time units between
+                            // the emergence of two leaves
+
+const int MAX_GROWTHTIME_INTERNODE = 600;
+const int MAX_GROWTHTIME_PETIOLE = 30;
+const int MAX_GROWTHTIME_LEAF = 96;
+
+const float GROWTH_RATE_INTERNODE_LENGTH = 0.001;
+const float GROWTH_RATE_INTERNODE_DIAMETER = 0.000004;
+const float GROWTH_RATE_PETIOLE_LENGTH = 0.00117;
+const float GROWTH_RATE_PETIOLE_DIAMETER = 0.000031;
+const float GROWTH_RATE_LEAF_SCALE = 0.0016;
+
+const int TOPSECTION = 0; 
+   const int TOPSECTION_MAXLPI = 8;
+const int MIDDLESECTION= 1;
+const int BASESECTION = 2; 
+   const int BASESECTION_MAXLEAFNUMBER = 5;
+
+const float[] MAX_GROWTH_INTERNODE = {0.01, 0.03, 0.02};
+const float[] MAX_GROWTH_PETIOLE = {0.01, 0.07, 0.02};
+const float[] MAX_GROWTH_LEAF_SCALE = {0.07, 0.09, 0.03};
+
+const float LEAFFORMFACTOR = 0.6;
+
+/*********************** rule blocks ***************************/
+
+protected void init()
+   {
+   time = 0;
+   nbleaves = 0;
+      [
+      Axiom ==> Tree(0, 0.03) Meristem(0, 0);
+      ]
+   }
+
+
+public void run()  /* control of rule applications */
+   {
+   if (tmpFileClosed) newDataFile();
+	
+   time ++;
+   println("Hour:" + time); tmpfile.println("Hour" + time); 
+	
+   for (apply(1))  photosynthesis(PART_OF_A_DAY);
+   for (apply(10)) transport();
+   for (apply(1))  grow();
+
+   tmpfile.flush(); // writing of buffer tmpfile into the file
+   closeDataFile();
+   }
+
+// method for the calculation of photosynthesis in the leaves
+public void photosynthesis(float part_of_a_day)
+   {
+   tmpfile.println("   photosynthesis"); 
+      [	
+      s:Blade ::> 
+         {
+         int lpi= getLPI(nbleaves, s[lnfb]);
+         float leafarea = s[scale] * s[scale] / 1.3 * LEAFFORMFACTOR;
+         s[pspool] += calculatePS(leafarea, convertMC(lpi)) 
+                         / part_of_a_day;
+//	tmpfile.println("      Leaf: " + s[lnfb] + " LPI " + lpi + 
+//             "  pool: " + s[pspool] + "  leaf area: " + leafarea); 
+         }
+      ]
+   }
+
+private void grow()
+   {
+   /* rule block for the meristem: */
+      [   
+      // first rule: the meristem ages
+      m:Meristem ::> m[age]++;	
+	
+      // for a meristem: formation of the internode
+      m:Meristem, ((m[age] == PLASTOCHRON) || (m[lnfb] == 0)) ==> 
+         Internode(0, m[lnfb]+1) 
+         [ RL(45) Petiole(0, m[lnfb]+1) RH(5) RL(30) 
+            [ Blade(0, m[lnfb]+1).(setShader(leafmat), setScale(0.001))
+              { nbleaves++; }
+            ]
+         ] RH(140) RU(random(-5,5)) Meristem(0, m[lnfb]+1);
+      ]
+      
+   /* rule block for extension growth of internodes: */
+      [
+      i:Internode ::> 
+         {
+         if (i[age] < MAX_GROWTHTIME_INTERNODE && 
+             i[length] <= MAX_GROWTH_INTERNODE[getGrowthSection(nbleaves, i[lnfb])]) 
+            { i[length] :+= GROWTH_RATE_INTERNODE_LENGTH; }  
+                                            // length growth at the beginning
+         i[diameter] :+= GROWTH_RATE_INTERNODE_DIAMETER; // diameter growth always
+         i[age]++; // age increment
+         }
+      ]
+
+   /* rule block for extension growth of petioles: */
+      [
+      p:Petiole, (p[age] < MAX_GROWTHTIME_PETIOLE && 
+         p[length] < MAX_GROWTH_PETIOLE[getGrowthSection(nbleaves, p[lnfb])]) ::> 
+         {
+         p[length] :+= GROWTH_RATE_PETIOLE_LENGTH;  // length growth
+         p[diameter] :+= GROWTH_RATE_PETIOLE_DIAMETER; // diameter growth
+         p[age]++; // age increment
+         }
+      ]
+
+   /* rule block for leaf growth: */
+      [
+      s:Blade, (s[age] < MAX_GROWTHTIME_LEAF  &&  
+         s[scale] < MAX_GROWTH_LEAF_SCALE[getGrowthSection(nbleaves, s[lnfb])]) ::> 
+         {
+         s.setScale(s[scale] + GROWTH_RATE_LEAF_SCALE);
+         s[age]++;
+         }
+      ]
+   }
+
+private void transport()
+   {
+   tmpfile.println("  transport " ); 
+      [
+      b:Blade -ancestor-> i:Internode ::> 
+         {
+         if (getLPI(nbleaves, b[lnfb]) >= 4)
+            {
+            float r = 0.01 * (b[pspool] - i[pspool]);
+//          println("basipetal PS transport: " + r + " (transp. rule)");
+            b[pspool] :-= r;
+            i[pspool] :+= r; 
+            tmpfile.println("       leaf: " + b[lnfb] + " to internode "
+                             + i[lnfb] + "  amount: " + r); 
+            }
+         }
+      ]
+	
+      [
+      i_top:Internode -ancestor-> i_bottom:Internode ::> 
+         {
+         float r = 0.01 * (i_bottom[pspool] - i_top[pspool]);
+         tmpfile.println("        transport from internode: " + i_bottom[lnfb] + 
+                         "to: " + i_top[lnfb] + " amount: " + r);
+         i_bottom[pspool] :-= r;
+         i_top[pspool] :+= r;		
+         }
+      ]
+      
+      [
+      t:Tree -successor-> i:Internode, (t[pspool] > 0.0001) ::>
+         {
+         float r = 0.001 * t[pspool];
+         tmpfile.println("        transport from tree pool to internode: "
+                           + i[lnfb] + " amount: " + r);
+         t[pspool] :-= r;
+         i[pspool] :+= r;			
+         }
+      ]
+   }
+
+/************************  methods for calculation ************************/
+
+private int getLPI(int maxleaf, int lnfb)
+   {
+   return maxleaf - lnfb - 1; 	
+   }
+
+private int getGrowthSection(int maxleaf, int lnfb)
+   {
+   int section = 0;
+   if (lnfb <= BASESECTION_MAXLEAFNUMBER)
+      section = BASESECTION;
+   else
+      if (getLPI(maxleaf, lnfb) <= TOPSECTION_MAXLPI)
+         section = TOPSECTION;
+      else
+         section = MIDDLESECTION;
+   return section;
+   }
+   
+/*********************** methods for service output ************************/
+
+private void newDataFile()
+   {
+   tmpfile = new PrintWriter(new FileWriter("c:\\tmp\\dataoutput3.txt"));
+   tmpFileClosed = false;
+   }
+
+//--------  special method (private) for closing the file
+private void closeDataFile()
+   {
+   tmpfile.close();         // file is closed
+   tmpFileClosed = true;
+   }

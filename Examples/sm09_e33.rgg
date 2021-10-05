@@ -1,0 +1,54 @@
+/* You learn at this example:
+
+- how thickness growth according to the "pipe model"
+  can be modelled with the help of queries and relations.
+  
+In this example, growth in length and growth in thickness
+are strictly separated. This means, you have first to
+execute the rule block grow_l (to ensure visibility of
+the thin shoots, switch to wireframe display!) and then
+grow_d for growth in thickness.
+*/
+
+module B extends Sphere(0.4)
+{{ setShader(GREEN);}};
+
+module C extends Sphere(0.5)
+{{ setShader(RED);}};
+
+module S(super.diameter, int todo) extends F(10, diameter, 2);
+  // todo is set to 0 when the diameter contribution of this
+  // shoot for the next shoot below was already taken into account.
+  // Then the shoot is no longer marked.
+  
+module T(super.diameter) extends F(10, diameter, 14);
+  // marked shoot: it shall propagate its diameter downwards.
+
+float D0 = 0.001;  // initial shoot diameter (nearly 0)
+float D1 = 1.0;    // final diameter of the distal shoots
+
+protected void init()
+{
+setDerivationMode(PARALLEL_MODE);  // default mode: parallel
+[ Axiom ==> S(D0, 1) B; ]
+}
+
+public void grow_l()       // growth of the structure in length
+[
+B ==> [ RU(35) S(D0, 1) B ] [ RU(-35) S(D0, 1) B ];
+]
+
+public void grow_d()       // growth in thickness: sequentially,
+{                          // top-down
+setDerivationMode(SEQUENTIAL_MODE);
+   [
+   S(d, t) B ==> T(D1) C;  // marking of the distal shoots
+   
+   (* s:S(d, t) +> RU(x) *) T(y) ==> S(y, 0),
+      { s[diameter] = Math.sqrt(d*d + y*y); }; // pipe model!
+      
+                           // continued marking downwards:
+   s:S(d, t), (empty((* T(y) -ancestor-> s *)) &&
+               empty((* B -ancestor-> s *)) && t != 0 ) ==> T(d);
+   ]
+}

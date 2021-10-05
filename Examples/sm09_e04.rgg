@@ -1,0 +1,44 @@
+/* You learn at this example:
+
+- how to make several blocks of rules accessible for
+  interactive use (call by the user)
+- what the effects of using these rule blocks are
+
+Execute the rule blocks in varying ways, eventually modify them.
+
+*/
+
+// Example of a simple tree architecture (Schoute architecture)
+
+//----------- Extension to the alphabet -------------
+// Shoot() is an extension of the turtle command F() and stands 
+// for an annual shoot
+
+module Shoot(float len) extends F(len);
+
+// Bud is an extension of a sphere obeject and stands for a terminal bud
+
+module Bud(float strength) extends Sphere(0.2)
+{{ setShader(RED); setTransform(0, 0, 0.3); }};
+
+//----------------------------------------------------
+
+// Start block with the start word
+protected void init()
+[
+   Axiom ==> Bud(5);
+]
+
+
+// first public block (appears in the menue as a button)
+public void grow()
+[
+   Bud(x), (x > 2) ==> Shoot(x) [ RU(50) Bud(0.7*x) ] [ RU(-50) Bud(0.7*x) ] Bud(x);
+]
+	
+
+// second public block (appears in the menue as a button)
+public void die()
+[ 
+   Bud(x), (x < 3) ==> ;  
+]

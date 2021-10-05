@@ -1,0 +1,68 @@
+/*
+You learn at this example:
+
+- exponentiation with **
+- the use of arrays
+- the use of mathematical functions (e.g., Math.min)
+- the use of user-defined functions (methods)
+- the difference between functions and arrays
+
+*/
+
+module A(int order);
+
+protected void init()
+[ Axiom ==> A(0); ]
+
+
+// as a reference: without arrays and functions
+public void run0()
+[
+   a:A ==> F(0.8**a[order]) [ RU(30)  RH(90) A(a[order]+1) ] 
+                              [ RU(-30) RH(90) A(a[order]+1) ];
+]
+
+
+const float[] len = {1, 1, 0.5, 0.2};
+const float[] angle = {40, 50, 80, 100};
+
+public void run1()
+[
+   a:A, (a[order] < 4) ==> F(len[a[order]])
+	   [ RU( angle[a[order]]) RH(90) A(a[order]+1) ] 
+	   [ RU(-angle[a[order]]) RH(90) A(a[order]+1) ];
+]
+
+public void run2()
+[
+   a:A(o) ==> F(len[Math.min(a[order], 3)] * random(0.6, 1.4))
+	   [ RU( angle[Math.min(a[order], 3)]) RH(90) A(a[order]+1) ]
+	   [ RU(-angle[Math.min(a[order], 3)]) RH(90) A(a[order]+1) ];
+]
+
+// Attention: here, a method (function) is used which is called "len".
+// This function should not be mixed up with the array.
+// The call of a method is as follows:
+//     methodName(parameter)
+// The access of an element of an array is done as follows:
+//     arrayName[index_of_the_entry]
+
+// Definition of the method with the name "len"
+private float len(int o)
+{
+   if (o < 2)
+      return 1;
+   else 
+      if (o == 2)
+         return 0.5;
+      else
+         return 0.8**o;
+}
+
+// public method: uses the user-defined method "len"
+public void run3()
+[
+   a:A ==> F(len(a[order]))
+	   [ RU( angle[Math.min(a[order], 3)]) RH(90) A(a[order]+1) ]
+           [ RU(-angle[Math.min(a[order], 3)]) RH(90) A(a[order]+1) ];
+]

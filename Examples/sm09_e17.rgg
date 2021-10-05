@@ -1,0 +1,56 @@
+/*
+You learn:
+
+- how the growth of a planar object can be controlled by
+  a "Scale" object.
+
+*/
+
+// a simple internode with a fixed, very small initial size
+module Internode(int age) extends F(0.01, 0.0005)
+{{ setShader(GREEN);}};
+
+module Meristem(int age) extends Sphere(0.0005)
+{{ setShader(RED);}};
+
+module Petiole(int age) extends F(0.005, 0.001)
+{{setShader(GREEN);}};
+
+module Leaf(int age) extends Scale()
+{{
+   scaleX = 0.01; 
+   scaleY = 0.01; 
+   scaleZ = 0.01;
+}};
+
+const Shader leafmat = shader("Leaf1");
+
+module Blade extends Parallelogram()
+{{setShader(leafmat);}};
+
+protected void init()
+[ Axiom ==> Meristem(30); ]
+
+public void run()
+[    
+   m:Meristem, (m[age] == 30) ==> Internode(0) 
+	[ RL(45) Petiole(0) RH(5) Leaf(0) RL(30) [ Blade ] ]
+	RH(140) RU(random(-10, 10)) Meristem(0);
+   // The meristem ages:
+   m:Meristem, (m[age] < 30) ::> m[age]++;
+
+   i:Internode ::> 
+	{
+	if(i[age] < 30) i[length] += 0.005;
+	i[diameter] += 0.0001;
+	i[age]++;
+	}
+
+   // rule for leaf growth
+   l:Leaf, (l[age] < 40) ::> 
+	{
+	l[age] ++;
+	l[scaleX] += 0.005;
+	l[scaleZ] += 0.005/1.3;
+	}	
+]

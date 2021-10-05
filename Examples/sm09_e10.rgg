@@ -1,0 +1,41 @@
+/*
+You learn at this example:
+
+how to insert textures and images into a scene.
+Observe in GroIMP the "Shaders" window, often located in the lower left part
+of the GUI.
+Doubleclick on the shader "Leaf2" and watch the attribute window.
+In the shader definition, replace "Leaf2" by the other attached texture!
+*/
+
+// Example for a simple tree architecture (model Schoute)
+module Shoot(float len) extends F(len, 0.2);
+module Bud(float strength) extends Sphere(0.2)
+{{setShader(RED); setTransform(0,0,0.3);}};
+
+// Definition of a global constant for the call of the texture:
+const Shader leafMat = shader("Leaf");
+
+// Definition of the leaf object as extension of a parallelogram:
+module Leaf(float len, float width) extends Parallelogram(len, width)
+
+// the shader gets assigned a texture instead of a colour
+{{setShader(leafMat);}};
+
+module Petiole(float len) extends F(len, 0.01);
+
+//----------------------------------------------------/
+
+protected void init()
+[ Axiom ==> Bud(5); ]
+
+// rule system for Schoute architecture; notice the leaf objects (Leaf).
+public void run()
+[
+   Bud(x) ==> Shoot(x)
+      // for angle variations, random numbers are used
+      [ RU(80) RH(90) Petiole(0.2*x) Leaf(4, 1) ]              // Leaf 1
+      [ RU(random(20,45)) RH(random(70, 110)) Bud(0.9*x) ]     // Branch 1
+      [ RU(-90) RH(90) Petiole(0.2*x) Leaf(4, 1) ]             // Leaf 2
+      [ RU(random(-20, -45)) RH(random(70, 110)) Bud(0.9*x) ]; // Branch2
+]

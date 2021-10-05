@@ -1,0 +1,106 @@
+/*
+You will learn:
+
+- how you you make your own methods for modules and how you can
+do huge calculations
+- how you can access matrices for geometrical transformations.
+
+*/
+
+// a simple internode with a fixed, very small start size:
+module Internode(int age) extends F(0.01, 0.0005)
+{{setShader(GREEN);}};
+
+// a meristem as seed for growth:
+module Meristem(int age) extends Sphere(0.0005)
+{{setShader(RED);}};
+
+// the petiole:
+module Petiole(int age) extends F(0.005, 0.001)
+{{setShader(GREEN);}};
+
+// The leaf with its own methods and several calculations:
+module Blade(int age, float x, float z) extends Parallelogram(1, 1)
+   {
+   // gets the width of the leaf (= scaling in x direction):
+   public float getXExtension()
+      {
+      TMatrix4d mymatrix = (TMatrix4d) this.getTransform();
+      return mymatrix.m00;
+      }
+   // gets the length of the leaf (= scaling in z direction):
+   public float getZExtension()
+      {
+      TMatrix4d mymatrix = (TMatrix4d) this.getTransform();
+      return mymatrix.m22;
+      }
+   // sets the width of the leaf:
+   public void setXExtension(float x)
+      {
+      TMatrix4d mymatrix = (TMatrix4d) this.getTransform();
+      mymatrix.m00 = x;
+      this.setTransform(mymatrix);
+      }
+   // sets the length of the leaf:
+   public void setZExtension(float z)
+      {
+      TMatrix4d  mymatrix = (TMatrix4d) this.getTransform();
+      mymatrix.m22 = z;
+      this.setTransform(mymatrix);	
+      }
+	
+   // sets all three extensions of the leaf:
+   public void setExtension(float x, float y, float z)
+      {
+      TMatrix4d mymatrix = new TMatrix4d();
+      mymatrix.m00 = x;
+      mymatrix.m11 = y;
+      mymatrix.m22 = z;
+      this.setTransform(mymatrix);	
+      }
+   
+   // this part is executed during construction of the leaf:
+      {
+      this.setExtension(x, 1.0, z);	 
+      }
+   }	
+
+const Shader leafmat = shader("Leaf1");
+
+
+protected void init()
+[ Axiom ==> Meristem(30); ]
+
+public void run()
+{
+   [
+   // first rule for a new meristem: formation of the internode
+   m:Meristem , (m[age] == 30) ==> Internode(0) [ RL(45) Petiole(0) 
+      RH(5) RL(30) [ Blade(0, 0.001, 0.001).(setShader(leafmat)) ] ]
+      RH(140) RU(random(-5, 5)) Meristem(0);
+
+   // the meristem ages:
+   m:Meristem, (m[age] < 30) ::> m[age]++;	
+   ]
+
+   [
+   // block for the growth of the internode:
+   i:Internode ::> 
+      {
+      if(i[age] < 30) { i[length] += 0.001; }
+         // groth in length during the first 30 years
+      i[diameter] += 0.000004; // growth in thickness always!
+      i[age]++; // incrementation of age
+      }
+   ]
+
+   [ 
+   // block for leaf growth:
+   s:Blade, (s[age] < 60) ::> 
+      {
+      s.setZExtension(s.getZExtension() + 0.002);
+      s.setXExtension(s.getXExtension() + (0.002 / 1.3));
+      s[age]++;
+      }	
+   ]
+}
